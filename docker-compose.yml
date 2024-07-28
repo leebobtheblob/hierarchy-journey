@@ -1,0 +1,27 @@
+services:
+  db:
+    container_name: hier_db
+    image: postgres
+    restart: always
+    ports:
+      - "2222:5432"
+    volumes:
+      - db_vol:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=atg110810!
+      - POSTGRES_USER=atg
+      - POSTGRES_DB=postgres
+
+  adminer:
+    container_name: hier_admin
+    image: adminer
+    restart: always
+    depends_on: 
+      - db
+    ports:
+      - "2223:8080"
+  
+
+volumes:
+  db_vol:
+     driver: local
