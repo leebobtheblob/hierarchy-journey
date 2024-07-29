@@ -3,11 +3,16 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Tree,
   UncontrolledTreeEnvironment,
-  StaticTreeDataProvider,
+  TreeItem,
+  TreeItemIndex,
+  DraggingPosition,
 } from "react-complex-tree";
-// import { TreeItem, TreeItemIndex, DraggingPosition } from 'react-complex-tree/dist/types';
+import { CustomTreeDataProvider } from "./custom-tree-data-provider";
+import { Button } from "./button";
 
-const SimpleTree = () => {
+
+
+const SimpleTree = ( {data:any}) => {
   const initialItems = {
     root: {
       index: "root",
@@ -21,7 +26,7 @@ const SimpleTree = () => {
       index: "office1",
       canMove: true,
       isFolder: true,
-      children: [],
+      children: ["member1", "member2", "member3"],
       data: "성남",
       canRename: true,
     },
@@ -29,7 +34,7 @@ const SimpleTree = () => {
       index: "office2",
       canMove: true,
       isFolder: true,
-      children: ["member1", "member2"],
+      children: ["member4"],
       data: "가산",
       canRename: true,
     },
@@ -54,60 +59,33 @@ const SimpleTree = () => {
       data: "임재범",
       canRename: true,
     },
+    member4: {
+      index: "member4",
+      canMove: true,
+      children: [],
+      data: "가산 김씨",
+      canRename: true,
+    },
   };
 
   const [items, setItems] = useState(initialItems);
-
-  const dataProviderRef = useRef(
-    new StaticTreeDataProvider(initialItems, (item, newName) => {
-      const updatedItems = {
-        ...items,
-        [item.index]: { ...item, data: newName },
-      };
-      setItems(updatedItems);
-      return updatedItems[item.index];
-    })
-  );
+  const dataProviderRef = useRef(new CustomTreeDataProvider(initialItems));
 
   useEffect(() => {
-    const handleTreeDataChange = (changedItemIds: TreeItemIndex[]) => {
-      setItems((prevItems) => {
-        const updatedItems = { ...prevItems };
-        changedItemIds.forEach((id) => {
-          updatedItems[id] = dataProviderRef.current.getTreeItem(id);
-        });
-        return updatedItems;
-      });
-    };
-
-    const disposable =
-      dataProviderRef.current.onDidChangeTreeData(handleTreeDataChange);
-
-    return () => {
-      disposable.dispose();
-    };
-  }, []);
-
-  useEffect(() => {
-    dataProviderRef.current = new StaticTreeDataProvider(
-      items,
-      (item, newName) => {
-        const updatedItems = {
-          ...items,
-          [item.index]: { ...item, data: newName },
-        };
-        setItems(updatedItems);
-        return updatedItems[item.index];
-      }
-    );
+    dataProviderRef.current.updateItems(items);
   }, [items]);
 
-  const onDrop = (
-    itemsBeingMoved: TreeItem<any>[],
-    target: DraggingPosition
-  ) => {
+  const onDrop = (itemsBeingMoved, target) => {
+    console.log("on drop");
+
+    console.log(itemsBeingMoved);
+    console.log(target);
+    console.log(initialItems);
+
     if (target.targetType === "between-items" || target.targetType === "item") {
       setItems((prevItems) => {
+        console.log(prevItems);
+
         if (!prevItems) return prevItems;
 
         const itemIds = itemsBeingMoved.map((item) => item.index);
@@ -142,18 +120,24 @@ const SimpleTree = () => {
         };
 
         // Emit the change event
-        dataProviderRef.current.onDidChangeTreeDataEmitter.emit([
-          parentNode.index,
-        ]);
+        dataProviderRef.current.triggerChange([parentNode.index]);
+
+        console.log(newData);
 
         return newData;
       });
     }
   };
 
+  const handleSave =()=>{
+    
+  }
+
   return (
     <div className="grid grid-cols-3 gap-2">
       <div className="col-span-2 border-2 border-grey h-[50vh] p-4">
+        <div>
+        <Button onClick={handleSave} >저장</Button>
         <UncontrolledTreeEnvironment
           dataProvider={dataProviderRef.current}
           getItemTitle={(item) => item.data}
@@ -165,6 +149,7 @@ const SimpleTree = () => {
         >
           <Tree treeId="tree-2" rootItem="root" treeLabel="TAMS 개발팀" />
         </UncontrolledTreeEnvironment>
+        </div>
       </div>
       <div className="border-2 border-grey h-[50vh] p-4 bg-gray-50">
         <h1 className="font-bold">{"JSON Data Structure:"}</h1>
