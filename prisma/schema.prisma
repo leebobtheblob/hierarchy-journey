@@ -16,7 +16,7 @@ datasource db {
 model Hierarchy {
   id    Int     @id @default(autoincrement())
   name  String  @unique
-  data  Json
+  jdata  Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
