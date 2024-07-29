@@ -1,16 +1,46 @@
+type TreeItemIndex = string | number;
+
+interface TreeItem<T = any> {
+  index: TreeItemIndex;
+  children?: Array<TreeItemIndex>;
+  isFolder?: boolean;
+  canMove?: boolean;
+  canRename?: boolean;
+  data: T;
+}
+
+type HierarchyData = Record<TreeItemIndex, TreeItem<any>>;
+
+// function isHierarchyData(value: any): value is HierarchyData {
+//   if (typeof value !== 'object' || value === null) return false;
+
+//   return Object.values(value).every(
+//     item =>
+//       item &&
+//       typeof item === 'object' &&
+//       'index' in item &&
+//       'data' in item
+//   );
+// }
+
 import SimpleTree from './_components/simple-tree';
 import { getHierarchy } from './_actions/tree-action';
 
 export default async function Home() {
   const hierarchyData = await getHierarchy();
-  // console.log('server page : ', hierarchyData);
+
+  let parsedHierarchyData: HierarchyData | null = null;
+
+  if (hierarchyData) {
+    parsedHierarchyData = hierarchyData.data;
+  }
 
   return (
     <div className="p-20">
-      {hierarchyData ? (
-        <SimpleTree hierarchyData={hierarchyData} />
+      {parsedHierarchyData ? (
+        <SimpleTree hierarchyData={parsedHierarchyData} />
       ) : (
-        <p>Loading...</p>
+        <p>No Data</p>
       )}
     </div>
   );

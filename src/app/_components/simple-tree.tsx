@@ -1,10 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
 import type { Hierarchy } from '@prisma/client'
-
-
-
-
 import {
   Tree,
   UncontrolledTreeEnvironment,
@@ -14,17 +10,18 @@ import {
 } from "react-complex-tree";
 import { CustomDataProviderImplementation } from "./custom-tree-data-provider";
 import { Button } from "./button";
+import { updateHierarchy } from "@/_actions/tree-action";
 
 
 type SimpleTreeProps ={
-  hierarchyData :Hierarchy
+  hierarchyData: Record<TreeItemIndex, TreeItem<any>>;
 }
 
-const SimpleTree = ({ hierarchyData } : SimpleTreeProps) => {
+const SimpleTree = ({ hierarchyData }:SimpleTreeProps) => {
   const [items, setItems] = useState(hierarchyData);
-  console.log(hierarchyData)
-
-  const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), [hierarchyData]);
+console.log(hierarchyData)
+  const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), 
+  [hierarchyData]);
 
   useEffect(() => {
     dataProvider.updateItems(items);
@@ -72,8 +69,10 @@ const SimpleTree = ({ hierarchyData } : SimpleTreeProps) => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async() => {
     // Implement your save logic here
+    console.log(items)
+    await updateHierarchy(items)
   };
 
   return (
@@ -88,7 +87,7 @@ const SimpleTree = ({ hierarchyData } : SimpleTreeProps) => {
             canDragAndDrop={true}
             canDropOnFolder={true}
             canReorderItems={true}
-            // onDrop={onDrop}
+            onDrop={onDrop}
           >
             <Tree treeId="tree-2" rootItem="root" treeLabel="TAMS 개발팀" />
           </UncontrolledTreeEnvironment>
