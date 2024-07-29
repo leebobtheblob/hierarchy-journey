@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Tree,
   UncontrolledTreeEnvironment,
@@ -7,85 +7,21 @@ import {
   TreeItemIndex,
   DraggingPosition,
 } from "react-complex-tree";
-import { CustomTreeDataProvider } from "./custom-tree-data-provider";
+import { CustomDataProviderImplementation } from "./custom-tree-data-provider";
 import { Button } from "./button";
 
+const SimpleTree = ({ hierarchyData }) => {
+  const [items, setItems] = useState(hierarchyData);
 
-
-const SimpleTree = ( {data:any}) => {
-  const initialItems = {
-    root: {
-      index: "root",
-      canMove: true,
-      isFolder: true,
-      children: ["office1", "office2"],
-      data: "Root item",
-      canRename: true,
-    },
-    office1: {
-      index: "office1",
-      canMove: true,
-      isFolder: true,
-      children: ["member1", "member2", "member3"],
-      data: "성남",
-      canRename: true,
-    },
-    office2: {
-      index: "office2",
-      canMove: true,
-      isFolder: true,
-      children: ["member4"],
-      data: "가산",
-      canRename: true,
-    },
-    member1: {
-      index: "member1",
-      canMove: true,
-      children: [],
-      data: "강영진",
-      canRename: true,
-    },
-    member2: {
-      index: "member2",
-      canMove: true,
-      children: [],
-      data: "이승현",
-      canRename: true,
-    },
-    member3: {
-      index: "member3",
-      canMove: true,
-      children: [],
-      data: "임재범",
-      canRename: true,
-    },
-    member4: {
-      index: "member4",
-      canMove: true,
-      children: [],
-      data: "가산 김씨",
-      canRename: true,
-    },
-  };
-
-  const [items, setItems] = useState(initialItems);
-  const dataProviderRef = useRef(new CustomTreeDataProvider(initialItems));
+  const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), [hierarchyData]);
 
   useEffect(() => {
-    dataProviderRef.current.updateItems(items);
-  }, [items]);
+    dataProvider.updateItems(items);
+  }, [items, dataProvider]);
 
   const onDrop = (itemsBeingMoved, target) => {
-    console.log("on drop");
-
-    console.log(itemsBeingMoved);
-    console.log(target);
-    console.log(initialItems);
-
     if (target.targetType === "between-items" || target.targetType === "item") {
       setItems((prevItems) => {
-        console.log(prevItems);
-
         if (!prevItems) return prevItems;
 
         const itemIds = itemsBeingMoved.map((item) => item.index);
@@ -97,9 +33,7 @@ const SimpleTree = ( {data:any}) => {
         // Remove the items from their previous parent
         Object.values(prevItems).forEach((item) => {
           if (item.children) {
-            item.children = item.children.filter(
-              (child) => !itemIds.includes(child)
-            );
+            item.children = item.children.filter((child) => !itemIds.includes(child));
           }
         });
 
@@ -120,35 +54,33 @@ const SimpleTree = ( {data:any}) => {
         };
 
         // Emit the change event
-        dataProviderRef.current.triggerChange([parentNode.index]);
-
-        console.log(newData);
+        dataProvider.updateItems(newData);
 
         return newData;
       });
     }
   };
 
-  const handleSave =()=>{
-    
-  }
+  const handleSave = () => {
+    // Implement your save logic here
+  };
 
   return (
     <div className="grid grid-cols-3 gap-2">
       <div className="col-span-2 border-2 border-grey h-[50vh] p-4">
         <div>
-        <Button onClick={handleSave} >저장</Button>
-        <UncontrolledTreeEnvironment
-          dataProvider={dataProviderRef.current}
-          getItemTitle={(item) => item.data}
-          viewState={{}}
-          canDragAndDrop={true}
-          canDropOnFolder={true}
-          canReorderItems={true}
-          onDrop={onDrop}
-        >
-          <Tree treeId="tree-2" rootItem="root" treeLabel="TAMS 개발팀" />
-        </UncontrolledTreeEnvironment>
+          <Button onClick={handleSave}>저장</Button>
+          <UncontrolledTreeEnvironment
+            dataProvider={dataProvider}
+            getItemTitle={(item) => { console.log(item); return item.data}}
+            viewState={{}}
+            canDragAndDrop={true}
+            canDropOnFolder={true}
+            canReorderItems={true}
+            // onDrop={onDrop}
+          >
+            <Tree treeId="tree-2" rootItem="root" treeLabel="TAMS 개발팀" />
+          </UncontrolledTreeEnvironment>
         </div>
       </div>
       <div className="border-2 border-grey h-[50vh] p-4 bg-gray-50">

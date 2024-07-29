@@ -3,7 +3,7 @@ import { getHierarchy } from './_actions/tree-action';
 
 export default async function Home() {
   const hierarchyData = await getHierarchy();
-  console.log('server page : ', hierarchyData);
+  // console.log('server page : ', hierarchyData);
 
   return (
     <div className="p-20">
