@@ -14,7 +14,7 @@ export const getHierarchy = async() =>{
     
 }
 
-const updateHierarchy = async (updatedJSONData)=>{
+export const updateHierarchy = async (updatedJSONData)=>{
     await db.hierarchy.update(
         {
             where:{name:"office"},
