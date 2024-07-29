@@ -6,7 +6,10 @@ import { db } from "@/lib/utils";
 
 export const getHierarchy = async() =>{
    const officeHierarchy = await db.hierarchy.findUnique({
-        where: {name:"office"}
+        where: {
+            name:"office"
+            // id:1
+        }
     })
 
     return officeHierarchy

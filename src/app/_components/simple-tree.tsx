@@ -1,5 +1,10 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import type { Hierarchy } from '@prisma/client'
+
+
+
+
 import {
   Tree,
   UncontrolledTreeEnvironment,
@@ -10,8 +15,14 @@ import {
 import { CustomDataProviderImplementation } from "./custom-tree-data-provider";
 import { Button } from "./button";
 
-const SimpleTree = ({ hierarchyData }) => {
+
+type SimpleTreeProps ={
+  hierarchyData :Hierarchy
+}
+
+const SimpleTree = ({ hierarchyData } : SimpleTreeProps) => {
   const [items, setItems] = useState(hierarchyData);
+  console.log(hierarchyData)
 
   const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), [hierarchyData]);
 
