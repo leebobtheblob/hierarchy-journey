@@ -18,6 +18,7 @@ type SimpleTreeProps ={
 }
 
 const SimpleTree = ({ hierarchyData }:SimpleTreeProps) => {
+  const [selectedItem, setSelectedItem] = useState<TreeItemIndex[] | null>()
   const [items, setItems] = useState(hierarchyData);
 console.log(hierarchyData)
   const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), 
@@ -80,9 +81,18 @@ console.log(hierarchyData)
     // Implement your save logic here
     // console.log(items)
     // await updateHierarchy(items)
-    dataProvider.injectItem(window.prompt('Item name') || 'New item',"Gasan")
+
+    // const selectedItemType = 
+    // if(selectedItem)
+    dataProvider.injectItem(window.prompt('Item name') || 'New item', selectedItem[0])
   };
 
+
+  const handleSelect =(items: TreeItemIndex, treeId: string)=>{
+    // console.log(items)
+    // console.log(treeId)//
+    setSelectedItem(items)
+  }
   
 
   return (
@@ -99,6 +109,7 @@ console.log(hierarchyData)
             canDropOnFolder={true}
             canReorderItems={true}
             onDrop={onDrop}
+            onSelectItems={handleSelect}
           >
             <Tree treeId="tree-2" rootItem="root" treeLabel="TAMS 개발팀" />
           </UncontrolledTreeEnvironment>
