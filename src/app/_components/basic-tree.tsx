@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import type { Hierarchy } from '@prisma/client'
 import {
   Tree,
@@ -7,28 +7,23 @@ import {
   TreeItem,
   TreeItemIndex,
   DraggingPosition,
+  StaticTreeDataProvider,
 } from "react-complex-tree";
-import { CustomDataProviderImplementation } from "./custom-tree-data-provider";
 import { Button } from "./button";
 import { updateHierarchy } from "@/_actions/tree-action";
 
-
-type SimpleTreeProps ={
+type SimpleTreeProps = {
   hierarchyData: Record<TreeItemIndex, TreeItem<any>>;
 }
 
-const SimpleTree = ({ hierarchyData }:SimpleTreeProps) => {
+const BasicTree = ({ hierarchyData }: SimpleTreeProps) => {
   const [items, setItems] = useState(hierarchyData);
-console.log(hierarchyData)
-  const dataProvider = useMemo(() => new CustomDataProviderImplementation(hierarchyData), 
-  [hierarchyData]);
 
-  useEffect(() => {
-    dataProvider.updateItems(items);
-  }, [items, dataProvider]);
+  const dataProvider = useMemo(() => new StaticTreeDataProvider(items, (item, data) => ({
+    ...item, data,
+  })), [items]);
 
-
-  const onDrop = (itemsBeingMoved:TreeItem<any>[], target:DraggingPosition) => {
+  const onDrop = useCallback((itemsBeingMoved, target) => {
     if (target.targetType === "between-items" || target.targetType === "item") {
       setItems((prevItems) => {
         if (!prevItems) return prevItems;
@@ -39,14 +34,14 @@ console.log(hierarchyData)
             ? prevItems[target.parentItem]
             : prevItems[target.targetItem];
 
-        // Remove the items from their previous parent - 이전 부모로 부터 제거
+        // Remove the items from their previous parent
         Object.values(prevItems).forEach((item) => {
           if (item.children) {
             item.children = item.children.filter((child) => !itemIds.includes(child));
           }
         });
 
-        // Add the items to the new parent - 새로운 부모한테 추가
+        // Add the items to the new parent
         const newChildren = [...(parentNode.children ?? [])];
         if (target.targetType === "between-items") {
           newChildren.splice(target.childIndex, 0, ...itemIds);
@@ -62,38 +57,25 @@ console.log(hierarchyData)
           },
         };
 
-        // Emit the change event
-        dataProvider.updateItems(newData);
-
         return newData;
       });
     }
-  };
+  }, []);
 
-  const handleSave = async() => {
+  const handleSave = async () => {
     // Implement your save logic here
-    console.log(items)
-    await updateHierarchy(items)
+    console.log(items);
+    await updateHierarchy(items);
   };
-
-  const handleInject = async() => {
-    // Implement your save logic here
-    // console.log(items)
-    // await updateHierarchy(items)
-    dataProvider.injectItem(window.prompt('Item name') || 'New item',"Gasan")
-  };
-
-  
 
   return (
     <div className="grid grid-cols-3 gap-2 h-[100vh] p-4">
       <div className="col-span-2 border-2 border-grey">
         <div>
           <Button onClick={handleSave}>저장</Button>
-          <Button onClick={handleInject}>추가</Button>
           <UncontrolledTreeEnvironment
             dataProvider={dataProvider}
-            getItemTitle={(item) => { console.log(item); return item.data}}
+            getItemTitle={(item) => item.data}
             viewState={{}}
             canDragAndDrop={true}
             canDropOnFolder={true}
@@ -112,4 +94,4 @@ console.log(hierarchyData)
   );
 };
 
-export default SimpleTree;
+export default BasicTree;

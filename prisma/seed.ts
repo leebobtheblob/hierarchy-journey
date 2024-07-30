@@ -22,7 +22,7 @@ async function performDatabaseInserts() {
               canMove: true,
               isFolder: true,
               children: ["kyj", "lsh", "ljb"],
-              data: "성남",
+              data: "가산",
               canRename: true
             },
             Jeongja: {
@@ -30,7 +30,7 @@ async function performDatabaseInserts() {
               canMove: true,
               isFolder: true,
               children: ["khj"],
-              data: "가산",
+              data: "정자",
               canRename: true
             },
             kyj: {

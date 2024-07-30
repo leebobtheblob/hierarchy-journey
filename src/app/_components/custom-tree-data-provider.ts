@@ -31,11 +31,13 @@ export class CustomDataProviderImplementation implements TreeDataProvider {
   }
 
   // custom handler for directly manipulating the tree data
-  public injectItem(name: string) {
+  public injectItem(name: string, selected_item='root') {
     const rand = `${Math.random()}`;
     this.data[rand] = { data: name, index: rand } as TreeItem;
-    this.data.root.children?.push(rand);
-    this.treeChangeListeners.forEach(listener => listener(["root"]));
+    this.data['Gasan'].children?.push(rand)
+  
+    // this.data.root.children?.push(rand);
+    this.treeChangeListeners.forEach(listener => listener([selected_item]));
   }
 
   // method to update items in the provider
