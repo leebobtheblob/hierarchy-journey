@@ -8,7 +8,7 @@ async function performDatabaseInserts() {
       await db.hierarchy.create({
         data: {
           name: 'office',
-          data: {
+          jdata: {
             root: {
               index: "root",
               canMove: true,
