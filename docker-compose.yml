@@ -20,8 +20,73 @@ services:
       - db
     ports:
       - "2223:8080"
-  
+    environment:
+      ADMINER_DEFAULT_DRIVER: pgsql # server=mysql, pgsql, sqlite, sqlite2, oracle, mssql, mongo, elastic
+      ADMINER_DEFAULT_SERVER: hier_db
+      ADMINER_DEFAULT_USERNAME: atg
+      ADMINER_DEFAULT_PASSWORD: atg110810!
+      ADMINER_DEFAULT_DB: postgres
+      ADMINER_DESIGN: flat #pepa-linha
+      # - ADMINER_DB=mydb
+    configs: [{ source: adminer-index.php, target: /var/www/html/index.php }]
+
+configs:
+  adminer-index.php:
+    # Patched version of index.php to set default values for adminer and to
+    # allow passwordless login whenever ADMINER_DEFAULT_DRIVER is sqlite.
+    content: |
+      <?php
+      namespace docker {
+        function adminer_object() {
+          require_once('plugins/plugin.php');
+          class Adminer extends \AdminerPlugin {
+            function _callParent($$function, $$args) {
+              if ($$function === 'loginForm') {
+                ob_start();
+                $$return = \Adminer::loginForm();
+                $$form = ob_get_clean();
+                $$driver = $$_ENV["ADMINER_DEFAULT_DRIVER"] ?: "server";
+                $$server = $$_ENV["ADMINER_DEFAULT_SERVER"] ?: "db";
+                $$username = $$_ENV["ADMINER_DEFAULT_USERNAME"];
+                $$password = $$_ENV["ADMINER_DEFAULT_PASSWORD"];
+                $$db = $$_ENV["ADMINER_DEFAULT_DB"];
+                $$form = preg_replace('/ name="auth\[server\]" value="(.*)"/', ' name="auth[server]" value="' . $$server . '"', $$form);
+                $$form = str_replace(' id="username" value="" ', ' id="username" value="' . $$username . '" ', $$form);
+                $$form = str_replace('name="auth[db]" value=""', 'name="auth[db]" value="' . $$db . '" ', $$form);
+                $$form = str_replace('type="password"', 'type="password" value="' . $$password . '"', $$form);
+                $$form = preg_replace('/<option value="(.*)" selected/', '/<option value="$$1"/', $$form);
+                $$form = preg_replace('/<option value="' . $$driver . '"/', '<option value="' . $$driver . '" selected', $$form);
+                echo $$form;
+                return $$return;
+              }
+              return parent::_callParent($$function, $$args);
+            }
+          }
+          $$plugins = [];
+          foreach (glob('plugins-enabled/*.php') as $$plugin) {
+            $$plugins[] = require($$plugin);
+          }
+          class AdminerSoftware extends Adminer {
+            function login($$login, $$password) {
+                return substr($$_ENV["ADMINER_DEFAULT_DRIVER"], 0, 6) == 'sqlite' ? true : parent::login($$login, $$password);
+            }
+          }
+          return new AdminerSoftware($$plugins);
+        }
+      }
+      namespace {
+        if (basename($$_SERVER['DOCUMENT_URI'] ?? $$_SERVER['REQUEST_URI']) === 'adminer.css' && is_readable('adminer.css')) {
+          header('Content-Type: text/css');
+          readfile('adminer.css');
+          exit;
+        }
+        function adminer_object() {
+            return \docker\adminer_object();
+        }
+        require('adminer.php');
+      }
 
 volumes:
   db_vol:
      driver: local
+
